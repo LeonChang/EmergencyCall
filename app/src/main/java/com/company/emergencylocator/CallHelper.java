@@ -15,18 +15,18 @@ public class CallHelper {
     private final String TAG = "Call Helper";
 
     private Context ctx;
-    private TelephonyManager tm;
-    private CallStateListener callStateListener;
     private OutgoingReceiver outgoingReceiver;
+    // private TelephonyManager tm;
+    // private CallStateListener callStateListener;
 
     public CallHelper(Context context) {
         ctx = context;
-        callStateListener = new CallStateListener();
+        // callStateListener = new CallStateListener();
         outgoingReceiver = new OutgoingReceiver();
     }
 
 
-    // Incoming Calls
+    /* Incoming Calls
     private class CallStateListener extends PhoneStateListener {
         @Override
         public void onCallStateChanged (int state, String incomingNumber) {
@@ -37,7 +37,7 @@ public class CallHelper {
                     break;
             }
         }
-    }
+    } */
 
     // Outgoing Calls
     private class OutgoingReceiver extends BroadcastReceiver {
@@ -54,16 +54,17 @@ public class CallHelper {
     }
 
     public void start() {
-        tm = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
         // Registration of the listener for incoming calls
-        tm.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        // tm = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+        // tm.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+
         // Registration of the listener for outgoing calls
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
         ctx.registerReceiver(outgoingReceiver, intentFilter);
     }
 
     public void stop() {
-        tm.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
+        // tm.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
         ctx.unregisterReceiver(outgoingReceiver);
     }
 }
