@@ -5,11 +5,11 @@ import android.content.Intent;
 import android.os.IBinder;
 
 
-public class CallDetectService extends Service {
+public class EmergencyService extends Service {
     private CallHelper callHelper;
 
 
-    public CallDetectService() {
+    public EmergencyService() {
     }
 
     @Override
@@ -22,7 +22,7 @@ public class CallDetectService extends Service {
         callHelper = new CallHelper(this);
 
         int res = super.onStartCommand(intent, flags, startId);
-        callHelper.start();
+        callHelper.start(this);
         return res;
     }
 

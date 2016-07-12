@@ -71,8 +71,8 @@ public class MainActivity extends AppCompatActivity implements
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
                 .setFastestInterval(1 * 1000); // 1 second, in milliseconds
 
-        Intent intent = new Intent(this, CallDetectService.class);
-        if (!isMyServiceRunning(CallDetectService.class)) {
+        Intent intent = new Intent(this, EmergencyService.class);
+        if (!isMyServiceRunning(EmergencyService.class)) {
             startService(intent);
         }
     }

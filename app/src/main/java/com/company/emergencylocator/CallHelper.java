@@ -4,8 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,14 +13,15 @@ public class CallHelper {
     private final String TAG = "Call Helper";
 
     private Context ctx;
-    private OutgoingReceiver outgoingReceiver;
+    private OutgoingReceiver mOutgoingReceiver;
+    private LocationDetector mLocationDetector;
     // private TelephonyManager tm;
     // private CallStateListener callStateListener;
 
     public CallHelper(Context context) {
         ctx = context;
         // callStateListener = new CallStateListener();
-        outgoingReceiver = new OutgoingReceiver();
+        mOutgoingReceiver = new OutgoingReceiver();
     }
 
 
@@ -50,21 +49,25 @@ public class CallHelper {
             String number = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
             Log.i(TAG, "Outgoing phone number: " + number);
             Toast.makeText(context, "Outgoing: "+number, Toast.LENGTH_LONG).show();
+
+            // mLocationDetector.sendLocation();
         }
     }
 
-    public void start() {
+    public void start(Context context) {
         // Registration of the listener for incoming calls
         // tm = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
         // tm.listen(callStateListener, PhoneStateListener.LISTEN_CALL_STATE);
 
         // Registration of the listener for outgoing calls
         IntentFilter intentFilter = new IntentFilter(Intent.ACTION_NEW_OUTGOING_CALL);
-        ctx.registerReceiver(outgoingReceiver, intentFilter);
+        ctx.registerReceiver(mOutgoingReceiver, intentFilter);
+
+        mLocationDetector = new LocationDetector(context);
     }
 
     public void stop() {
         // tm.listen(callStateListener, PhoneStateListener.LISTEN_NONE);
-        ctx.unregisterReceiver(outgoingReceiver);
+        ctx.unregisterReceiver(mOutgoingReceiver);
     }
 }
