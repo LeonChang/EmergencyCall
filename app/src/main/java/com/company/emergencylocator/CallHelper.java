@@ -9,6 +9,8 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+
 public class CallHelper {
 
     MainActivity mMainActivity = new MainActivity();
@@ -16,13 +18,14 @@ public class CallHelper {
 
     private Context ctx;
     private OutgoingReceiver outgoingReceiver;
+    private static final String mEmergencyNumber = "9083926510";
     // private TelephonyManager tm;
     // private CallStateListener callStateListener;
 
-    public CallHelper(Context context) {
+    public CallHelper(Context context, GoogleApiClient client) {
         ctx = context;
         // callStateListener = new CallStateListener();
-        outgoingReceiver = new OutgoingReceiver();
+        outgoingReceiver = new OutgoingReceiver(client);
     }
 
 
@@ -41,15 +44,20 @@ public class CallHelper {
 
     // Outgoing Calls
     private class OutgoingReceiver extends BroadcastReceiver {
-        public OutgoingReceiver() {
+        GoogleApiClient ReceiverGoogleApiclient;
 
+        public OutgoingReceiver(GoogleApiClient client) {
+            ReceiverGoogleApiclient = client;
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
             String number = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
             Log.i(TAG, "Outgoing phone number: " + number);
-            Toast.makeText(context, "Outgoing: "+number, Toast.LENGTH_LONG).show();
+            if (number == mEmergencyNumber) {
+                Toast.makeText(context, "Outgoing: " + number, Toast.LENGTH_LONG).show();
+                ReceiverGoogleApiclient.connect();
+            }
         }
     }
 

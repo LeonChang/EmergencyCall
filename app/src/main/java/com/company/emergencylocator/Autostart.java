@@ -9,7 +9,7 @@ public class Autostart extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Intent CallDetectServiceIntent = new Intent(context, CallDetectService.class);
+        Intent CallDetectServiceIntent = new Intent(context, EmergencyService.class);
         context.startService(CallDetectServiceIntent);
         Log.i("Autostart", "Autostart has activated");
     }
