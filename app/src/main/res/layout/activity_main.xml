@@ -25,4 +25,27 @@
         android:id="@+id/endServiceButton"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Emergency Number"
+        android:id="@+id/NumberLabel"
+        android:layout_above="@+id/callButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="80dp"
+        android:textSize="16sp"/>
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="phone"
+        android:ems="10"
+        android:id="@+id/NumberField"
+        android:layout_above="@+id/callButton"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="31dp"
+        android:text="911"
+        android:textAlignment="center"
+        android:textSize="16sp"/>
 </RelativeLayout>

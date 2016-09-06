@@ -13,9 +13,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -26,22 +29,14 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.Calendar;
 
-public class MainActivity extends AppCompatActivity implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+public class MainActivity extends AppCompatActivity
+ {
 
-    private static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9999;
-    private static final int PERMISSIONS_FINE_LOCATION = 9000;
     private static final String TAG = "EmergencyLocator Main";
 
     private Button mCallButton;
     private Button mEndServiceButton;
-    private String mPhoneNumber;
-    /*
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
-*/
+    private EditText mEmergencyNumberEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements
 
         mCallButton = (Button) findViewById(R.id.callButton);
         mEndServiceButton = (Button) findViewById(R.id.endServiceButton);
+        mEmergencyNumberEditor = (EditText) findViewById(R.id.NumberField);
 
         mCallButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,23 +54,8 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
-        // Get phone number
-        TelephonyManager tMgr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        mPhoneNumber = tMgr.getLine1Number();
-        Log.i(TAG, "My phone number is " + mPhoneNumber);
-/*
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
 
-        // Create the LocationRequest object
-        mLocationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
-*/
+
         final Intent intent = new Intent(this, EmergencyService.class);
         if (!isMyServiceRunning(EmergencyService.class)) {
             startService(intent);
@@ -86,10 +67,24 @@ public class MainActivity extends AppCompatActivity implements
                 stopService(intent);
             }
         });
+        mEmergencyNumberEditor.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                EmergencyService.changeEmergencyNumber(mEmergencyNumberEditor.getText().toString());
+            }
+        });
     }
 
     private String getEmergencyNumber() {
-        return "9083926510";
+        return mEmergencyNumberEditor.getText().toString();
     }
 
     private void makeCall(String number) {
@@ -106,82 +101,13 @@ public class MainActivity extends AppCompatActivity implements
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "Map on resume");
-        // mGoogleApiClient.connect();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        /*
-        Log.i(TAG, "Map on pause.");
-        if (mGoogleApiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
-        }*/
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.i(TAG, "Location services connected. Google Play services available: " + GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this));
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.i(TAG, "No permissions in the onConnected() method!");
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_FINE_LOCATION);
-            return;
-        }
-        /*
-        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
-        // Check if we have a recent location (within last 2 minutes)
-        if (location != null && location.getTime() - Calendar.getInstance().getTimeInMillis() > 2 * 60 * 1000) {
-            Log.i(TAG, "Location not null");
-            onLocationChanged(location);
-        }
-        else {
-            Log.i(TAG, "Location is null");
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-        };
-        */
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.i(TAG, "Location services suspended. Please reconnect.");
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        Log.i(TAG, "We are in OnLocationChanged");
-        // If we have a recent location, turn off the location updates
-        /*
-        if (location != null) {
-            Log.i(TAG, "Our location is: " + location.getLatitude() + " and " + location.getLongitude());
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
-        */
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        if (connectionResult.hasResolution()) {
-            try {
-                // Start an Activity that tries to resolve the error
-                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
-            } catch (IntentSender.SendIntentException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Log.i(TAG, "Location services connection failed with code " + connectionResult.getErrorCode());
-        }
-        Log.i(TAG, "Location services failed.");
-    }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);

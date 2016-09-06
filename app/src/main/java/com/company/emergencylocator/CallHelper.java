@@ -4,12 +4,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
 public class CallHelper {
 
@@ -18,14 +22,18 @@ public class CallHelper {
 
     private Context ctx;
     private OutgoingReceiver outgoingReceiver;
-    private static final String mEmergencyNumber = "9083926510";
+    private static String mEmergencyNumber = "911";
     // private TelephonyManager tm;
     // private CallStateListener callStateListener;
 
-    public CallHelper(Context context, GoogleApiClient client) {
+    public CallHelper(EmergencyService service, Context context, GoogleApiClient client) {
         ctx = context;
         // callStateListener = new CallStateListener();
-        outgoingReceiver = new OutgoingReceiver(client);
+        outgoingReceiver = new OutgoingReceiver(service, ctx, client);
+    }
+
+    public static void changeEmergencyNumber(String emergencyNumber) {
+        mEmergencyNumber = emergencyNumber;
     }
 
 
@@ -44,22 +52,29 @@ public class CallHelper {
 
     // Outgoing Calls
     private class OutgoingReceiver extends BroadcastReceiver {
-        GoogleApiClient ReceiverGoogleApiclient;
+        private GoogleApiClient ReceiverGoogleApiclient;
+        private Context mContext;
+        private EmergencyService mEmergencyService;
 
-        public OutgoingReceiver(GoogleApiClient client) {
+        public OutgoingReceiver(EmergencyService service, Context context, GoogleApiClient client) {
+            mEmergencyService = service;
+            mContext = context;
             ReceiverGoogleApiclient = client;
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
             String number = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
-            Log.i(TAG, "Outgoing phone number: " + number);
-            if (number == mEmergencyNumber) {
-                Toast.makeText(context, "Outgoing: " + number, Toast.LENGTH_LONG).show();
+            //Log.i(TAG, "Outgoing phone number: " + number);
+            if (number.equalsIgnoreCase(mEmergencyNumber)) {
+                Log.i(TAG, "Outgoing emergency number: " + number);
                 ReceiverGoogleApiclient.connect();
+                mEmergencyService.activateSendLocation();
+
             }
         }
     }
+
 
     public void start() {
         // Registration of the listener for incoming calls
