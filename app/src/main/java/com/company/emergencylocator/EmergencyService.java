@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -34,11 +35,13 @@ public class EmergencyService extends Service implements
     private static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9999;
     private static final int PERMISSIONS_FINE_LOCATION = 9000;
 
-    private CallHelper callHelper;
+    private static CallHelper callHelper;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
 
     private Context ctx;
+    private boolean sendLocation = false;
+    private String mPhoneNumber;
 
     public EmergencyService() {
     }
@@ -47,6 +50,12 @@ public class EmergencyService extends Service implements
     public void onCreate(){
         super.onCreate();
         Log.i(TAG, "Service created");
+
+        // Get phone number
+        TelephonyManager tMgr = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        mPhoneNumber = tMgr.getLine1Number();
+        Log.i(TAG, "My phone number is " + mPhoneNumber);
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -63,7 +72,7 @@ public class EmergencyService extends Service implements
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        callHelper = new CallHelper(this, mGoogleApiClient);
+        callHelper = new CallHelper(this, this, mGoogleApiClient);
         ctx = this;
 
         int res = super.onStartCommand(intent, flags, startId);
@@ -84,6 +93,12 @@ public class EmergencyService extends Service implements
         // not supporting binding
         return null;
     }
+
+    public static void changeEmergencyNumber(String emergencyNumber) {
+        callHelper.changeEmergencyNumber(emergencyNumber);
+    }
+
+    public void activateSendLocation() {sendLocation = true;};
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -122,9 +137,15 @@ public class EmergencyService extends Service implements
     @Override
     public void onLocationChanged(Location location) {
         Log.i(TAG, "We are in OnLocationChanged");
+        if (sendLocation && location != null) {
+            //TODO: Send location!
+            Log.i(TAG, "Send our location: " + location.getLatitude() + " and " + location.getLongitude() + " with phone number " + mPhoneNumber);
+            sendLocation = false;
+        }
+
         // If we have a recent location, turn off the location updates
         if (location != null) {
-            Log.i(TAG, "Our location is: " + location.getLatitude() + " and " + location.getLongitude());
+            // Log.i(TAG, "Our location is: " + location.getLatitude() + " and " + location.getLongitude());
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         }
     }
